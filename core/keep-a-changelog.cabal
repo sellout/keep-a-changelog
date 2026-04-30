@@ -201,7 +201,7 @@ common defaults
       no-recursion,
     ghc-options:
       -fplugin=NoRecursion
-    if impl(ghc >= 9.4)
+    if impl(ghc >= 9.4.5)
       build-depends:
         henforcer ^>= {1.0.0},
       ghc-options:
@@ -213,7 +213,7 @@ library
     src
   build-depends:
     cmark ^>= {0.6},
-    containers ^>= {0.5.6, 0.6.0, 0.7},
+    containers ^>= {0.5.6, 0.6.0, 0.7, 0.8},
     text ^>= {1.2.0, 2.0, 2.1},
     time,
   -- duoids 0.0.1 only supports a narrow range of GHCs currently

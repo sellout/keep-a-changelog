@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
+-- Because cmark
 {-# LANGUAGE Trustworthy #-}
 
 -- |
@@ -54,7 +55,7 @@ import safe "base" Data.Tuple (snd, uncurry)
 import safe "base" GHC.Generics (Generic, Generic1)
 import safe "base" Text.Read (Read)
 import safe "base" Text.Show (Show)
-import safe "cmark" CMark
+import "cmark" CMark
   ( DelimType (PERIOD_DELIM),
     ListAttributes (ListAttributes),
     ListType (BULLET_LIST),
