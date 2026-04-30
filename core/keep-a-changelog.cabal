@@ -25,7 +25,6 @@ extra-doc-files:
   docs/*.md
 tested-with:
   GHC == {
-    7.10.3,
     8.0.2,
     8.2.2,
     8.4.1,
@@ -70,7 +69,7 @@ custom-setup
     --       9.8.3 include an older Cabal, so a newer one may need to be
     --       manually installed.
     Cabal >= 3.10.3 && < 99,
-    base ^>= {4.8.2, 4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0},
+    base ^>= {4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
     cabal-doctest ^>= {1.0.0},
 
 flag noisy-deprecations
@@ -139,36 +138,31 @@ common GHC2024
     StandaloneDeriving
     -- StandaloneKindSignatures -- uncomment if the oldest supported version is GHC 8.10.1+
     TupleSections
-    -- TypeApplications -- uncomment if the oldest supported version is GHC 8.0.1+
+    TypeApplications
     TypeOperators
     UnicodeSyntax
 
 common defaults
   import: GHC2024
   build-depends:
-    base ^>= {4.8.2, 4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0},
+    base ^>= {4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
     ghc-compat-plugin ^>= {0.1.0},
   ghc-options:
+    -Weverything
+    -- This one just reports unfixable things, AFAICT.
+    -Wno-all-missed-specialisations
+    -- Type inference good.
+    -Wno-missing-local-signatures
+    -- Warns even when `Unsafe` is explicit, not inferred. See
+    -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
+    -Wno-unsafe
     -fplugin GhcCompat
-    -fplugin-opt GhcCompat:minVersion=7.10.3
+    -fplugin-opt GhcCompat:minVersion=8.0.1
     -fplugin-opt GhcCompat:reportIncompatibleExtensions=error
-  if impl(ghc >= 8.0.1)
+  if impl(ghc < 8.8.1)
     ghc-options:
-      -Weverything
-      -- This one just reports unfixable things, AFAICT.
-      -Wno-all-missed-specialisations
-      -- Type inference good.
-      -Wno-missing-local-signatures
-      -- Warns even when `Unsafe` is explicit, not inferred. See
-      -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
-      -Wno-unsafe
-    if impl(ghc < 8.8.1)
-      ghc-options:
-        -- This used to warn even when `Safe` was explicit.
-        -Wno-safe
-  else
-    ghc-options:
-      -Wall
+      -- This used to warn even when `Safe` was explicit.
+      -Wno-safe
   if impl(ghc >= 8.6.1)
     ghc-options:
       -- remove if oldest supported version is GHC 8.6.1
@@ -190,17 +184,15 @@ common defaults
     -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
-    -- TemplateHaskellQuotes - uncomment if the oldest supported version is GHC 8.0.1+
+    StrictData
+    TemplateHaskellQuotes
     TransformListComp
     NoGeneralizedNewtypeDeriving
     NoImplicitPrelude
     NoMonomorphismRestriction
     NoPatternGuards
     -- NoStarIsType - uncomment if the oldest supported version is GHC 8.6.1+
-    -- NoTypeApplications - uncomment if the oldest supported version is GHC 8.0.1+
-  if impl(ghc >= 8.0.1)
-    default-extensions:
-      StrictData
+    NoTypeApplications
   if flag(noisy-deprecations)
     cpp-options:
       -DSELLOUT_NOISY_DEPRECATIONS
@@ -220,7 +212,13 @@ library
   hs-source-dirs:
     src
   build-depends:
+    cmark ^>= {0.6},
+    containers ^>= {0.5.6, 0.6.0, 0.7},
+    duoids,
+    text ^>= {1.2.0, 2.0, 2.1},
+    time,
   exposed-modules:
+    Data.Changelog
 
 test-suite doctests
   import: defaults
@@ -232,6 +230,7 @@ test-suite doctests
     doctest,
     keep-a-changelog,
   ghc-options:
+    -Wno-safe
     -fno-warn-missing-import-lists
   if impl(ghc >= 8.10.1)
     ghc-options:
@@ -246,9 +245,6 @@ test-suite doctests
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.
-  if impl(ghc >= 8.0.1)
-    ghc-options:
-      -Wno-safe
   if impl(ghc >= 8.4.1)
     ghc-options:
       -Wno-missing-export-lists

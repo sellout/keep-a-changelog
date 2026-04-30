@@ -1,4 +1,4 @@
-# keep-a-changelog
+# Keep a Changelog (in Haskell)
 
 [![Hackage Version](https://img.shields.io/hackage/v/keep-a-changelog)](https://hackage.haskell.org/package/keep-a-changelog)
 [![Packaging status](https://repology.org/badge/tiny-repos/haskell:keep-a-changelog.svg)](https://repology.org/project/haskell:keep-a-changelog/versions)

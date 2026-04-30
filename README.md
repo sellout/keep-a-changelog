@@ -1,4 +1,4 @@
-# keep-a-changelog
+# Keep a Changelog (in Haskell)
 
 [![built with garnix](https://img.shields.io/endpoint?url=https%3A%2F%2Fgarnix.io%2Fapi%2Fbadges%2Fsellout%2Fkeep-a-changelog)](https://garnix.io/repo/sellout/keep-a-changelog)
 [![GitHub CI](https://github.com/sellout/keep-a-changelog/actions/workflows/build.yml/badge.svg)](https://github.com/sellout/keep-a-changelog/actions/workflows/build.yml)
