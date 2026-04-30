@@ -1,0 +1,11 @@
+{
+  project:
+    {
+      creation-date: "2026-04-29",
+      description: "A library for reading & writing [Keep a Changelog](https://keepachangelog.com/)-formatted files.",
+      name: "keep-a-changelog",
+      repo: "sellout/keep-a-changelog",
+      summary: "Structure your CHANGELOG.md",
+    },
+  type: { name: "haskell" },
+}
