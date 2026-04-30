@@ -67,7 +67,7 @@ import safe "containers" Data.Map.Strict (Map)
 import safe qualified "containers" Data.Map.Strict as Map
 import safe "text" Data.Text (Text)
 import safe qualified "text" Data.Text as T
-import safe "time" Data.Time.Calendar.OrdinalDate (Day)
+import safe "time" Data.Time.Calendar (Day)
 import safe "time" Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
 import safe "base" Prelude (Bounded, Enum)
 #if MIN_VERSION_GLASGOW_HASKELL(9, 6, 1, 0) \
