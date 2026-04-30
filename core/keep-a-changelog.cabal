@@ -214,9 +214,12 @@ library
   build-depends:
     cmark ^>= {0.6},
     containers ^>= {0.5.6, 0.6.0, 0.7},
-    duoids,
     text ^>= {1.2.0, 2.0, 2.1},
     time,
+  -- duoids 0.0.1 only supports a narrow range of GHCs currently
+  if impl(ghc >= 9.6.1 && < 9.14.1)
+    build-depends:
+      duoids ^>= {0.0.1},
   exposed-modules:
     Data.Changelog
 
