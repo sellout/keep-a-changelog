@@ -84,7 +84,7 @@ import safe "base" Data.Traversable (traverse)
 -- | A URL.
 --
 -- @since 0.0.1
-type URL = Text :: Type
+type URL = (Text :: Type)
 
 -- | The versioning system a project adheres to.
 --
@@ -184,7 +184,7 @@ data ChangeType
 --   Each @item@ is the block-level content of one list item.
 --
 -- @since 0.0.1
-type Sections (item :: Type) = Map ChangeType (NonEmpty item) :: Type
+type Sections (item :: Type) = (Map ChangeType (NonEmpty item) :: Type)
 
 -- | Errors that can occur when parsing a changelog from a cmark `Node` tree.
 --
