@@ -1,5 +1,7 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
+-- Because cmark
 {-# LANGUAGE Trustworthy #-}
 
 -- |
@@ -33,8 +35,7 @@ module Data.Changelog
   )
 where
 
-import safe "base" Control.Applicative (empty, (<|>))
-import safe qualified "base" Control.Applicative as Ap
+import safe "base" Control.Applicative (empty, pure, (<|>))
 import safe "base" Control.Category ((.))
 import safe "base" Data.Bifunctor (first)
 import safe "base" Data.Bool (Bool (False, True), bool, not)
@@ -54,7 +55,7 @@ import safe "base" Data.Tuple (snd, uncurry)
 import safe "base" GHC.Generics (Generic, Generic1)
 import safe "base" Text.Read (Read)
 import safe "base" Text.Show (Show)
-import safe "cmark" CMark
+import "cmark" CMark
   ( DelimType (PERIOD_DELIM),
     ListAttributes (ListAttributes),
     ListType (BULLET_LIST),
@@ -65,25 +66,25 @@ import safe "cmark" CMark
   )
 import safe "containers" Data.Map.Strict (Map)
 import safe qualified "containers" Data.Map.Strict as Map
--- WAIT: Can remove `*Commutative` once there’s a new release of duoids that
---       includes instances for `Maybe`, etc.
-import safe "duoids" Control.Duoidal
-  ( Commutative (Commutative),
-    getCommutative,
-    pure,
-    traverse,
-    (<=<),
-  )
 import safe "text" Data.Text (Text)
 import safe qualified "text" Data.Text as T
-import safe "time" Data.Time.Calendar.OrdinalDate (Day)
+import safe "time" Data.Time.Calendar (Day)
 import safe "time" Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
 import safe "base" Prelude (Bounded, Enum)
+#if MIN_VERSION_GLASGOW_HASKELL(9, 6, 1, 0) \
+    && !MIN_VERSION_GLASGOW_HASKELL(9, 14, 1, 0)
+-- WAIT: Once there’s a new release of duoids out, the uses of `pure` for
+--       `Maybe` should be able to use `pure` from here instead.
+import safe "duoids" Control.Duoidal (traverse, (<=<))
+#else
+import safe "base" Control.Monad ((<=<))
+import safe "base" Data.Traversable (traverse)
+#endif
 
 -- | A URL.
 --
 -- @since 0.0.1
-type URL = Text :: Type
+type URL = (Text :: Type)
 
 -- | The versioning system a project adheres to.
 --
@@ -183,7 +184,7 @@ data ChangeType
 --   Each @item@ is the block-level content of one list item.
 --
 -- @since 0.0.1
-type Sections (item :: Type) = Map ChangeType (NonEmpty item) :: Type
+type Sections (item :: Type) = (Map ChangeType (NonEmpty item) :: Type)
 
 -- | Errors that can occur when parsing a changelog from a cmark `Node` tree.
 --
@@ -218,10 +219,12 @@ renderPreamble vs =
 
 preambleNodes :: VersioningSystem -> [Node]
 preambleNodes vs =
-  [ Node empty PARAGRAPH . Ap.pure $
+  [ Node empty PARAGRAPH . pure $
       text
         "All notable changes to this project will be documented in this file.",
-    Node empty PARAGRAPH $
+    Node
+      empty
+      PARAGRAPH
       [ text "The format is based on ",
         Node
           empty
@@ -247,7 +250,7 @@ versioningRef = \case
       [text "the Haskell Package Versioning Policy"]
   Other name mUrl ->
     foldr
-      (\u -> Node empty (LINK u "") . Ap.pure)
+      (\u -> Node empty (LINK u "") . pure)
       (text name)
       mUrl
 
@@ -304,9 +307,9 @@ sectionsNodes = Map.foldMapWithKey sectionNodes
 
 sectionNodes :: ChangeType -> NonEmpty Node -> [Node]
 sectionNodes ct items =
-  [ Node empty (HEADING 3) . Ap.pure . text $ changeTypeLabel ct,
+  [ Node empty (HEADING 3) . pure . text $ changeTypeLabel ct,
     Node empty (LIST $ ListAttributes BULLET_LIST True 0 PERIOD_DELIM) $
-      foldMap (Ap.pure . itemNode) items
+      foldMap (pure . itemNode) items
   ]
 
 changeTypeLabel :: ChangeType -> Text
@@ -374,19 +377,19 @@ fromNode = \case
               ( \url ->
                   Changelog
                     vs
-                    (getCommutative . pure . Unreleased url $ parseSections body)
+                    (pure . Unreleased url $ parseSections body)
                     <$> extractReleases rest
               )
               $ extractUnreleasedHeading hd
-          [] -> Left $ Ap.pure NoReleases
-  Node _ _ _ -> Left $ Ap.pure NotADocument
+          [] -> Left $ pure NoReleases
+  Node {} -> Left $ pure NotADocument
 
 extractReleases ::
   [([Node], [Node])] -> Either (NonEmpty ParseError) (NonEmpty (Release Node))
 extractReleases =
-  note (Ap.pure NoReleases)
+  note (pure NoReleases)
     . nonEmpty
-    <=< traverse (first Ap.pure . uncurry extractRelease)
+    <=< traverse (first pure . uncurry extractRelease)
 
 extractRelease :: [Node] -> [Node] -> Either ParseError (Release Node)
 extractRelease hd body =
@@ -413,14 +416,13 @@ stepH2 :: [Node] -> Maybe (([Node], [Node]), [Node])
 stepH2 = \case
   (Node _ (HEADING 2) inlines : rest) ->
     let (body, remaining) = span (not . isH2) rest
-     in getCommutative $ pure ((inlines, body), remaining)
+     in pure ((inlines, body), remaining)
   _ -> empty
 
 -- Unreleased heading: HEADING 2 [LINK url "" [TEXT "Unreleased"]]
 extractUnreleasedHeading :: [Node] -> Maybe URL
 extractUnreleasedHeading = \case
-  [Node _ (LINK url _) [Node _ (TEXT "Unreleased") _]] ->
-    getCommutative $ pure url
+  [Node _ (LINK url _) [Node _ (TEXT "Unreleased") _]] -> pure url
   _ -> empty
 
 -- Release heading: HEADING 2 [LINK url [TEXT ver], TEXT " - date", ...]
@@ -452,34 +454,33 @@ pairH3List =
   snd . foldl' step (empty, [])
   where
     step (Just label, acc) list@(Node _ (LIST _) _) = (empty, acc <> [(label, list)])
-    step (_, acc) (Node _ (HEADING 3) [Node _ (TEXT label) _]) = (getCommutative $ pure label, acc)
+    step (_, acc) (Node _ (HEADING 3) [Node _ (TEXT label) _]) = (pure label, acc)
     step (_, acc) _ = (empty, acc)
 
 parseH3Pair :: (Text, Node) -> [(ChangeType, NonEmpty Node)]
 parseH3Pair (label, listNode) =
-  foldMap (\ct -> foldMap (Ap.pure . (ct,)) $ extractListItems listNode) $
+  foldMap (\ct -> foldMap (pure . (ct,)) $ extractListItems listNode) $
     parseChangeType label
 
 extractListItems :: Node -> Maybe (NonEmpty Node)
 extractListItems = \case
   Node _ (LIST _) items -> nonEmpty (foldMap itemContent items)
-  Node _ _ _ -> Nothing
+  Node {} -> Nothing
 
 itemContent :: Node -> [Node]
 itemContent = \case
   Node _ ITEM (child : _) -> [child]
-  Node _ _ _ -> []
+  Node {} -> []
 
 parseChangeType :: Text -> Maybe ChangeType
-parseChangeType =
-  getCommutative . \case
-    "Added" -> pure Added
-    "Changed" -> pure Changed
-    "Deprecated" -> pure Deprecated
-    "Fixed" -> pure Fixed
-    "Removed" -> pure Removed
-    "Security" -> pure Security
-    _ -> Commutative empty
+parseChangeType = \case
+  "Added" -> pure Added
+  "Changed" -> pure Changed
+  "Deprecated" -> pure Deprecated
+  "Fixed" -> pure Fixed
+  "Removed" -> pure Removed
+  "Security" -> pure Security
+  _ -> empty
 
 -- Preamble: extract versioning system from paragraphs before first H2
 extractVersioningSystem :: [Node] -> Maybe VersioningSystem
@@ -495,7 +496,7 @@ findVSLink =
   where
     step (_, acc@(Just _)) _ = (False, acc)
     step (True, _) (Node _ (LINK url _) [Node _ (TEXT name) _]) =
-      (False, getCommutative $ pure (classifyVS name url))
+      (False, pure (classifyVS name url))
     step (_, _) (Node _ (TEXT t) _) = ("adheres to " `T.isSuffixOf` t, empty)
     step (_, _) _ = (False, empty)
 
@@ -503,7 +504,7 @@ classifyVS :: Text -> URL -> VersioningSystem
 classifyVS = \case
   "Semantic Versioning" -> SemVer . extractSemVerVersion
   "the Haskell Package Versioning Policy" -> const PVP
-  name -> Other name . getCommutative . pure
+  name -> Other name . pure
 
 extractSemVerVersion :: URL -> Text
 extractSemVerVersion =
