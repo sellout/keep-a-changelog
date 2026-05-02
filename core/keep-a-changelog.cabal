@@ -149,8 +149,6 @@ common defaults
     ghc-compat-plugin ^>= {0.1.0},
   ghc-options:
     -Weverything
-    -- This one just reports unfixable things, AFAICT.
-    -Wno-all-missed-specialisations
     -- Type inference good.
     -Wno-missing-local-signatures
     -- Warns even when `Unsafe` is explicit, not inferred. See
@@ -198,7 +196,7 @@ common defaults
       -DSELLOUT_NOISY_DEPRECATIONS
   if flag(lint)
     build-depends:
-      no-recursion,
+      no-recursion ^>= {0.1.0, 0.2.0, 0.3.0, 0.4.0},
     ghc-options:
       -fplugin=NoRecursion
     if impl(ghc >= 9.4.5)
@@ -212,10 +210,10 @@ library
   hs-source-dirs:
     src
   build-depends:
-    cmark ^>= {0.6},
+    cmark ^>= {0.5.2, 0.6},
     containers ^>= {0.5.6, 0.6.0, 0.7, 0.8},
     text ^>= {1.2.0, 2.0, 2.1},
-    time,
+    time ^>= {1.9.3, 1.11.1, 1.12.2, 1.14, 1.15},
   -- duoids 0.0.1 only supports a narrow range of GHCs currently
   if impl(ghc >= 9.6.1 && < 9.14.1)
     build-depends:
@@ -230,7 +228,7 @@ test-suite doctests
     tests
   main-is: doctests.hs
   build-depends:
-    doctest,
+    doctest ^>= {0.16.2, 0.18.1, 0.20.1, 0.22.2, 0.23.0, 0.24.3},
     keep-a-changelog,
   ghc-options:
     -Wno-safe
