@@ -32,7 +32,16 @@
     pkgs
     hpkgs
     (old: {
-      configureFlags = old.configureFlags ++ ["--ghc-options=-Werror"];
+      ## These should match `program-options` in ../../cabal.project.
+      configureFlags =
+        old.configureFlags
+        ++ [
+          "--ghc-options=-Werror"
+          "--ghc-options=-Wall-missed-specialisations"
+          "--ghc-options=-Wmissed-specialisations"
+          "--ghc-options=-Wwarn=all-missed-specialisations"
+          "--ghc-options=-Wwarn=missed-specialisations"
+        ];
     });
 in
   {
@@ -60,7 +69,7 @@ in
           flaky.overlays.default
           (flaky-haskell.lib.overlayHaskellPackages
             (map self.lib.nixifyGhcVersion
-              (self.lib.supportedGhcVersions final.system))
+              (self.lib.supportedGhcVersions final.stdenv.hostPlatform.system))
             (final: prev:
               nixpkgs.lib.composeManyExtensions [
                 (flaky.overlays.haskellDependencies final prev)
@@ -108,16 +117,14 @@ in
           "9.4.8"
           "9.6.7"
           "9.8.4"
-          "9.10.2"
         ]
         ++ nixpkgs.lib.optionals (system != "i686-linux") [
-          "9.12.2" # GHC fails to build on i686-linux
+          "9.12.3" # GHC fails to build on i686-linux
         ];
 
       ## The versions that are older than those supported by Nix that we
       ## prefer to test against.
       nonNixTestedGhcVersions = [
-        "7.10.3"
         "8.0.2"
         "8.2.2"
         "8.4.1"
