@@ -84,7 +84,15 @@ in
       ## NB: Dependencies that are overridden because they are broken in
       ##     Nixpkgs should be pushed upstream to Flaky. This is for
       ##     dependencies that we override for reasons local to the project.
-      haskellDependencies = final: prev: hfinal: hprev: {};
+      haskellDependencies = final: prev: hfinal: hprev: {
+        ## Nixpkgs only has 0.0.1.0, which it marks broken (it needs a newer
+        ## `no-recursion` than Nixpkgs has).
+        duoids = hfinal.callHackageDirect {
+          pkg = "duoids";
+          ver = "0.1.0.0";
+          sha256 = "0xxlmqnsgjcwb1yrac53fs2pvsl39dq1dia4vwpz4dg1shggv0x0";
+        } {};
+      };
     };
 
     homeConfigurations =
