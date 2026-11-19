@@ -221,7 +221,9 @@ preambleNodes vs =
   [ Node empty PARAGRAPH . Ap.pure $
       text
         "All notable changes to this project will be documented in this file.",
-    Node empty PARAGRAPH $
+    Node
+      empty
+      PARAGRAPH
       [ text "The format is based on ",
         Node
           empty
@@ -379,7 +381,7 @@ fromNode = \case
               )
               $ extractUnreleasedHeading hd
           [] -> Left $ Ap.pure NoReleases
-  Node _ _ _ -> Left $ Ap.pure NotADocument
+  Node {} -> Left $ Ap.pure NotADocument
 
 extractReleases ::
   [([Node], [Node])] -> Either (NonEmpty ParseError) (NonEmpty (Release Node))
@@ -463,12 +465,12 @@ parseH3Pair (label, listNode) =
 extractListItems :: Node -> Maybe (NonEmpty Node)
 extractListItems = \case
   Node _ (LIST _) items -> nonEmpty (foldMap itemContent items)
-  Node _ _ _ -> Nothing
+  Node {} -> Nothing
 
 itemContent :: Node -> [Node]
 itemContent = \case
   Node _ ITEM (child : _) -> [child]
-  Node _ _ _ -> []
+  Node {} -> []
 
 parseChangeType :: Text -> Maybe ChangeType
 parseChangeType =
