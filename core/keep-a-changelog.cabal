@@ -25,20 +25,10 @@ extra-doc-files:
   docs/*.md
 tested-with:
   GHC == {
-    8.0.2,
-    8.2.2,
-    8.4.1,
-    8.6.1,
-    8.8.1,
-    8.10.1,
-    9.0.1,
-    9.2.1,
-    9.4.1, 9.4.8,
     9.6.1, 9.6.7,
     9.8.1, 9.8.4,
     9.10.1, 9.10.2, 9.10.3,
-    9.12.1, 9.12.2,
-    9.14.1
+    9.12.1, 9.12.2
   }
 
 homepage: https://github.com/sellout/keep-a-changelog#readme
@@ -64,7 +54,7 @@ custom-setup
     --       requires it to have _some_ upper bound. (Since there’s no direct
     --       dependency, it doesn’t use PVP bounds.)
     Cabal >= 3.0 && < 99,
-    base ^>= {4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+    base ^>= {4.18.0, 4.19.0, 4.20.0, 4.21.0},
     cabal-doctest ^>= {1.0.0},
 
 flag noisy-deprecations
@@ -103,9 +93,9 @@ common GHC2024
     DataKinds
     DeriveDataTypeable
     DeriveGeneric
-    -- DeriveLift -- uncomment if the oldest supported version is GHC 8.10.1+
+    DeriveLift
     DeriveTraversable
-    -- DerivingStrategies -- uncomment if the oldest supported version is GHC 8.2.1+
+    DerivingStrategies
     DisambiguateRecordFields
     DoAndIfThenElse
     EmptyCase
@@ -114,8 +104,8 @@ common GHC2024
     FlexibleInstances
     GADTs
     GeneralizedNewtypeDeriving
-    -- HexFloatLiterals -- uncomment if the oldest supported version is GHC 8.4.1+
-    -- ImportQualifiedPost -- uncomment if the oldest supported version is GHC 8.10.1+
+    HexFloatLiterals
+    ImportQualifiedPost
     InstanceSigs
     LambdaCase
     MagicHash
@@ -124,14 +114,14 @@ common GHC2024
     MultiParamTypeClasses
     NamedFieldPuns
     NamedWildCards
-    -- NumericUnderscores -- uncomment if the oldest supported version is GHC 8.6.1+
+    NumericUnderscores
     PolyKinds
     PostfixOperators
     RankNTypes
     RoleAnnotations
     ScopedTypeVariables
     StandaloneDeriving
-    -- StandaloneKindSignatures -- uncomment if the oldest supported version is GHC 8.10.1+
+    StandaloneKindSignatures
     TupleSections
     TypeApplications
     TypeOperators
@@ -140,7 +130,7 @@ common GHC2024
 common defaults
   import: GHC2024
   build-depends:
-    base ^>= {4.9.0, 4.10.0, 4.11.0, 4.12.0, 4.13.0, 4.14.0, 4.15.0, 4.16.0, 4.17.0, 4.18.0, 4.19.0, 4.20.0, 4.21.0, 4.22.0},
+    base ^>= {4.18.0, 4.19.0, 4.20.0, 4.21.0},
     ghc-compat-plugin ^>= {0.1.0},
   ghc-options:
     -Weverything
@@ -152,31 +142,18 @@ common defaults
     -- https://gitlab.haskell.org/ghc/ghc/-/issues/16689
     -Wno-unsafe
     -fplugin GhcCompat
-    -fplugin-opt GhcCompat:minVersion=8.0.1
+    -fplugin-opt GhcCompat:minVersion=9.6.1
     -fplugin-opt GhcCompat:reportIncompatibleExtensions=error
-  if impl(ghc < 8.8.1)
-    ghc-options:
-      -- This used to warn even when `Safe` was explicit.
-      -Wno-safe
-  if impl(ghc >= 8.6.1)
-    ghc-options:
-      -- remove if oldest supported version is GHC 8.6.1
-      -Wno-star-is-type
-  if impl(ghc >= 8.8.1)
-    ghc-options:
-      -- remove if oldest supported version is GHC 8.2.1
-      -Wno-missing-deriving-strategies
   default-extensions:
-    -- BlockArguments - uncomment if the oldest supported version is GHC 8.6.1+
+    BlockArguments
     DefaultSignatures
     ExplicitNamespaces
     FunctionalDependencies
+    LexicalNegation
     LiberalTypeSynonyms
-    -- replace with `LexicalNegation` if the oldest supported version is GHC 9.0.1+
-    NegativeLiterals
     PackageImports
     ParallelListComp
-    -- QualifiedDo - uncomment if the oldest supported version is GHC 9.0.1+
+    QualifiedDo
     RecursiveDo
     -- RequiredTypeArguments - uncomment if the oldest supported version is GHC 9.10.1+
     StrictData
@@ -186,16 +163,16 @@ common defaults
     NoImplicitPrelude
     NoMonomorphismRestriction
     NoPatternGuards
-    -- NoStarIsType - uncomment if the oldest supported version is GHC 8.6.1+
+    NoStarIsType
     NoTypeApplications
   if flag(noisy-deprecations)
     cpp-options:
       -DSELLOUT_NOISY_DEPRECATIONS
   if flag(lint)
     build-depends:
-      no-recursion,
+      no-recursion ^>= {0.1.0, 0.4.0},
     ghc-options:
-      -fplugin=NoRecursion
+      -fplugin NoRecursion
     if impl(ghc >= 9.4.5)
       build-depends:
         henforcer ^>= {1.0.0},
@@ -207,11 +184,11 @@ library
   hs-source-dirs:
     src
   build-depends:
-    cmark ^>= {0.6},
-    containers ^>= {0.5.6, 0.6.0, 0.7},
-    duoids,
-    text ^>= {1.2.0, 2.0, 2.1},
-    time,
+    cmark ^>= {0.6.1},
+    containers ^>= {0.6.7, 0.7},
+    duoids ^>= {0.1.0},
+    text ^>= {2.0.2, 2.1},
+    time ^>= {1.12.2, 1.14},
   exposed-modules:
     Data.Changelog
 
@@ -222,17 +199,8 @@ test-suite doctests
     tests
   main-is: doctests.hs
   build-depends:
-    doctest ^>= {0.16.3, 0.18.1, 0.20.1, 0.21.1, 0.22.2, 0.24.2, 0.25.0},
+    doctest ^>= {0.21.1, 0.22.2, 0.24.2, 0.25.0},
     keep-a-changelog,
-  ghc-options:
-    -Wno-safe
-    -fno-warn-missing-import-lists
-  if impl(ghc >= 8.10.1)
-    ghc-options:
-      -- `doctest` requires the package containing the doctests as a dependency
-      -- to ensure it gets built before this test-suite, even though the package
-      -- appears to be unused.
-      -Wno-unused-packages
   -- NB: Adjust this to contain any components that may have doctests (including
   --     executables).
   x-doctest-components:
@@ -240,12 +208,16 @@ test-suite doctests
   -- TODO: The sections below here are necessary because we don’t have control
   --       over the generated `Build_doctests.hs` file. So we have to silence
   --       all of its warnings one way or another.
-  if impl(ghc >= 8.4.1)
-    ghc-options:
-      -Wno-missing-export-lists
-  if impl(ghc >= 8.8.1)
-    ghc-options:
-      -Wno-missing-deriving-strategies
+  ghc-options:
+    -Wno-missing-deriving-strategies
+    -Wno-missing-export-lists
+    -Wno-missing-import-lists
+    -Wno-missing-kind-signatures
+    -Wno-safe
+    -- `doctest` requires the package containing the doctests as a dependency
+    -- to ensure it gets built before this test-suite, even though the package
+    -- appears to be unused.
+    -Wno-unused-packages
   default-extensions:
     -- Since we can’t add `{-# LANGUAGE Safe -#}` to the generated
     -- “Build_doctests.hs”, we set it here, and that means it has to match

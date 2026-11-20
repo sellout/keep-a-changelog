@@ -122,7 +122,6 @@ in
       testedGhcVersions = system:
         [
           self.lib.defaultGhcVersion
-          "9.4.8"
           "9.6.7"
           "9.8.4"
         ]
@@ -133,21 +132,11 @@ in
       ## The versions that are older than those supported by Nix that we
       ## prefer to test against.
       nonNixTestedGhcVersions = [
-        "8.0.2"
-        "8.2.2"
-        "8.4.1"
-        "8.6.1"
-        "8.8.1"
-        "8.10.1"
-        "9.0.1"
-        "9.2.1"
-        "9.4.1"
+        ## Restricted due to Duoids bounds
         "9.6.1"
-        ## since `cabal-plan-bounds` doesn’t work under Nix
         "9.8.1"
         "9.10.1"
         "9.12.1"
-        "9.14.1"
       ];
 
       ## However, provide packages in the default overlay for _every_

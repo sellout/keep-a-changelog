@@ -34,7 +34,7 @@ module Data.Changelog
 where
 
 import safe "base" Control.Applicative (empty, (<|>))
-import safe qualified "base" Control.Applicative as Ap
+import safe "base" Control.Applicative qualified as Ap
 import safe "base" Control.Category ((.))
 import safe "base" Data.Bifunctor (first)
 import safe "base" Data.Bool (Bool (False, True), bool, not)
@@ -54,7 +54,7 @@ import safe "base" Data.Tuple (snd, uncurry)
 import safe "base" GHC.Generics (Generic, Generic1)
 import safe "base" Text.Read (Read)
 import safe "base" Text.Show (Show)
-import safe "cmark" CMark
+import "cmark" CMark
   ( DelimType (PERIOD_DELIM),
     ListAttributes (ListAttributes),
     ListType (BULLET_LIST),
@@ -64,7 +64,7 @@ import safe "cmark" CMark
     nodeToCommonmark,
   )
 import safe "containers" Data.Map.Strict (Map)
-import safe qualified "containers" Data.Map.Strict as Map
+import safe "containers" Data.Map.Strict qualified as Map
 -- WAIT: Can remove `*Commutative` once there’s a new release of duoids that
 --       includes instances for `Maybe`, etc.
 import safe "duoids" Control.Duoidal
@@ -75,19 +75,23 @@ import safe "duoids" Control.Duoidal
     (<=<),
   )
 import safe "text" Data.Text (Text)
-import safe qualified "text" Data.Text as T
+import safe "text" Data.Text qualified as T
 import safe "time" Data.Time.Calendar.OrdinalDate (Day)
+-- for @`Read` `Day`@, starting from time-1.14
+import safe "time" Data.Time.Format ()
 import safe "time" Data.Time.Format.ISO8601 (iso8601ParseM, iso8601Show)
 import safe "base" Prelude (Bounded, Enum)
 
 -- | A URL.
 --
 -- @since 0.0.1
-type URL = Text :: Type
+type URL :: Type
+type URL = Text
 
 -- | The versioning system a project adheres to.
 --
 -- @since 0.0.1
+type VersioningSystem :: Type
 data VersioningSystem
   = -- | <https://semver.org/ Semantic Versioning>, carrying the spec version
     --   (e.g. @"2.0.0"@).
@@ -96,18 +100,19 @@ data VersioningSystem
     PVP
   | -- | A custom versioning system with a name and optional URL.
     Other Text (Maybe URL)
-  deriving (Eq, Generic, Ord, Read, Show)
+  deriving stock (Eq, Generic, Ord, Read, Show)
 
 -- | A changelog following the [Keep a Changelog](https://keepachangelog.com/)
 --   format.
 --
 -- @since 0.0.1
-data Changelog (item :: Type) = Changelog
+type Changelog :: Type -> Type
+data Changelog item = Changelog
   { versioningSystem :: Maybe VersioningSystem,
     unreleased :: Maybe (Unreleased item),
     releases :: NonEmpty (Release item)
   }
-  deriving
+  deriving stock
     ( Eq,
       Generic,
       Ord,
@@ -124,11 +129,12 @@ type role Changelog representational
 -- | An unreleased section with its URL and change sections.
 --
 -- @since 0.0.1
-data Unreleased (item :: Type) = Unreleased
+type Unreleased :: Type -> Type
+data Unreleased item = Unreleased
   { url :: URL,
     sections :: Sections item
   }
-  deriving
+  deriving stock
     ( Eq,
       Generic,
       Ord,
@@ -145,14 +151,15 @@ type role Unreleased representational
 -- | A single release entry with its version, URL, and change sections.
 --
 -- @since 0.0.1
-data Release (item :: Type) = Release
+type Release :: Type -> Type
+data Release item = Release
   { version :: Text,
     url :: URL,
     date :: Day,
     yanked :: Bool,
     sections :: Sections item
   }
-  deriving
+  deriving stock
     ( Eq,
       Generic,
       Ord,
@@ -169,6 +176,7 @@ type role Release representational
 -- | Categories of changes per the Keep a Changelog specification.
 --
 -- @since 0.0.1
+type ChangeType :: Type
 data ChangeType
   = Added
   | Changed
@@ -176,18 +184,20 @@ data ChangeType
   | Fixed
   | Removed
   | Security
-  deriving (Bounded, Enum, Eq, Generic, Ord, Read, Show)
+  deriving stock (Bounded, Enum, Eq, Generic, Ord, Read, Show)
 
 -- | Change sections, mapping each `ChangeType` to its non-empty list of items.
 --
 --   Each @item@ is the block-level content of one list item.
 --
 -- @since 0.0.1
-type Sections (item :: Type) = Map ChangeType (NonEmpty item) :: Type
+type Sections :: Type -> Type
+type Sections item = Map ChangeType (NonEmpty item)
 
 -- | Errors that can occur when parsing a changelog from a cmark `Node` tree.
 --
 -- @since 0.0.1
+type ParseError :: Type
 data ParseError
   = -- | The root node is not a `DOCUMENT`.
     NotADocument
@@ -197,7 +207,7 @@ data ParseError
     InvalidReleaseHeading [Node]
   | -- | A date string could not be parsed as YYYY-MM-DD.
     InvalidDate Text
-  deriving (Eq, Generic, Ord, Read, Show)
+  deriving stock (Eq, Generic, Ord, Read, Show)
 
 -- | Render a `Changelog` to Markdown suitable for a CHANGELOG.md file.
 --

@@ -75,6 +75,10 @@
     inherit (self.lib) defaultGhcVersion;
     ghcVersions = self.lib.nonNixTestedGhcVersions;
     cabalPackages = {"${config.project.name}" = "core";};
+    checkBounds.extraDependencyVersions = [
+      # Used by Nixpkgs 26.05’s haskellPackages
+      "doctest-0.24.2"
+    ];
     ## The latest Stackage LTS that we also build on GitHub for.
     latestGhcVersion = "9.10.1";
   };
