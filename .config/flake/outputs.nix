@@ -32,7 +32,16 @@
     pkgs
     hpkgs
     (old: {
-      configureFlags = old.configureFlags ++ ["--ghc-options=-Werror"];
+      ## These should match `program-options` in ../../cabal.project.
+      configureFlags =
+        old.configureFlags
+        ++ [
+          "--ghc-options=-Werror"
+          "--ghc-options=-Wall-missed-specialisations"
+          "--ghc-options=-Wmissed-specialisations"
+          "--ghc-options=-Wwarn=all-missed-specialisations"
+          "--ghc-options=-Wwarn=missed-specialisations"
+        ];
     });
 in
   {
@@ -60,7 +69,7 @@ in
           flaky.overlays.default
           (flaky-haskell.lib.overlayHaskellPackages
             (map self.lib.nixifyGhcVersion
-              (self.lib.supportedGhcVersions final.system))
+              (self.lib.supportedGhcVersions final.stdenv.hostPlatform.system))
             (final: prev:
               nixpkgs.lib.composeManyExtensions [
                 (flaky.overlays.haskellDependencies final prev)
@@ -75,7 +84,15 @@ in
       ## NB: Dependencies that are overridden because they are broken in
       ##     Nixpkgs should be pushed upstream to Flaky. This is for
       ##     dependencies that we override for reasons local to the project.
-      haskellDependencies = final: prev: hfinal: hprev: {};
+      haskellDependencies = final: prev: hfinal: hprev: {
+        ## Nixpkgs only has 0.0.1.0, which it marks broken (it needs a newer
+        ## `no-recursion` than Nixpkgs has).
+        duoids = hfinal.callHackageDirect {
+          pkg = "duoids";
+          ver = "0.1.0.0";
+          sha256 = "0xxlmqnsgjcwb1yrac53fs2pvsl39dq1dia4vwpz4dg1shggv0x0";
+        } {};
+      };
     };
 
     homeConfigurations =
@@ -105,34 +122,21 @@ in
       testedGhcVersions = system:
         [
           self.lib.defaultGhcVersion
-          "9.4.8"
           "9.6.7"
           "9.8.4"
-          "9.10.2"
         ]
         ++ nixpkgs.lib.optionals (system != "i686-linux") [
-          "9.12.2" # GHC fails to build on i686-linux
+          "9.12.3" # GHC fails to build on i686-linux
         ];
 
       ## The versions that are older than those supported by Nix that we
       ## prefer to test against.
       nonNixTestedGhcVersions = [
-        "7.10.3"
-        "8.0.2"
-        "8.2.2"
-        "8.4.1"
-        "8.6.1"
-        "8.8.1"
-        "8.10.1"
-        "9.0.1"
-        "9.2.1"
-        "9.4.1"
+        ## Restricted due to Duoids bounds
         "9.6.1"
-        ## since `cabal-plan-bounds` doesn’t work under Nix
         "9.8.1"
         "9.10.1"
         "9.12.1"
-        "9.14.1"
       ];
 
       ## However, provide packages in the default overlay for _every_
